@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.DemoPractical.Config.ResourceNotFoundException;
 import com.DemoPractical.Model.MstEmployeeBo;
-import com.DemoPractical.Model.MstModuleBo;
 import com.DemoPractical.Model.WebJSONBo;
 import com.DemoPractical.Repo.MstEmployeeRepo;
 import com.DemoPractical.Repo.MstModuleRepo;
@@ -19,12 +18,11 @@ import com.DemoPractical.Service.UserDataService;
 @Service
 public class UserDataServiceImpl implements UserDataService {
 
-	@Autowired
-	MstEmployeeRepo mstEmployeeRepo;
+	@Autowired MstEmployeeRepo mstEmployeeRepo;
 	@Autowired MstModuleRepo moRepo;
 
 	// Save Employee Data
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public WebJSONBo saveEmployeeDetails(MstEmployeeBo userBo) throws Exception {
 		WebJSONBo retBo = new WebJSONBo();
 		mstEmployeeRepo.save(userBo);
@@ -58,7 +56,7 @@ public class UserDataServiceImpl implements UserDataService {
 			mstEmployeeRepo.save(newBo);
 			retBo.setStatus("SUCCESS");
 			retBo.setReturn_message("Employee Details updated Successsfully");
-//					retBo.setResponseData(newBo);
+			retBo.setResponseData(newBo);
 		} else {
 			throw new ResourceNotFoundException("User Not Found");
 		}
@@ -67,19 +65,15 @@ public class UserDataServiceImpl implements UserDataService {
 	}
 
 	// Delete Employee Data
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public WebJSONBo deleteEmployeeDetailsByEmpId(MstEmployeeBo userBo) throws Exception {
 		WebJSONBo webBo = new WebJSONBo();
 		Optional<MstEmployeeBo> getBo = mstEmployeeRepo.findById(userBo.getEmpId());
 
 		if (getBo.isPresent()) {
-			int updCnt = mstEmployeeRepo.deleteEmpByEmpId(userBo.getLstUpdDate(), userBo.getLstUpdUser(),userBo.getLstUpdIp(), userBo.getEmpId());
-			if (updCnt > 0) {
+			    mstEmployeeRepo.deleteEmpByEmpId(userBo.getLstUpdDate(), userBo.getLstUpdUser(),userBo.getLstUpdIp(), userBo.getEmpId());
 				webBo.setStatus("SUCCESS");
 				webBo.setReturn_message("Employee id=" + userBo.getEmpId() + " Details Deleted");
-			} else {
-				throw new Exception("Error while delete Employee Details");
-			}
 		} else {
 			throw new ResourceNotFoundException("User Not Found");
 		}
